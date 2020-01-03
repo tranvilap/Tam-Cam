@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 995812e475b11ab469db0db2d2b796f0, type: 3}
+  m_Name: Intro Story 1
+  m_EditorClassIdentifier: 
+  dialogues:
+    array:
+    - content: "\"K\u1EBDo c\xE0 k\u1EBDo k\u1EB9t D\xE1m tranh ch\u1ED3ng ch\u1ECB
+        Ch\u1ECB kho\xE9t m\u1EAFt ra...\""
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX: []
+      isFadedIn: 1
+      fadedInDuration: 2
+      isFadedOut: 1
+      fadedOutDuration: 1
+    - content: "Trong m\u1ED9t c\u0103n nh\xE0 r\u01A1m l\u1EE5p x\u1EE5p, c\xF3 ba
+        ng\u01B0\u1EDDi \u0111ang \u0111\u1EE9ng d\u01B0\u1EDBi b\xF3ng \u0111\xE8n
+        d\u1EA7u. Nh\u1EEFng c\u01A1n gi\xF3 m\xF9a th\u1ED5i qua th\xEA l\u01B0\u01A1ng,
+        l\xE0m l\u1EA1nh th\xEAm c\xE1i kh\xF4ng gian \u1EA3m \u0111\u1EA1m."
+      bgm:
+        clip: {fileID: 8300000, guid: 843973db74e88194fa37c1237eb1809a, type: 3}
+        volume: 1
+      startOverBGM: 0
+      SFX:
+      - clip: {fileID: 8300000, guid: 441bbc105e6ea384185e3f4cafcade70, type: 3}
+        volume: 1
+      isFadedIn: 0
+      fadedInDuration: 0
+      isFadedOut: 0
+      fadedOutDuration: 0
+    - content: "Ng\u01B0\u1EDDi \u0111\xE0n \xF4ng ng\u1ED3i b\xEAn c\u1EA1nh gi\u1EEFa,
+        nh\xECn v\u1EE3 m\xECnh n\u1EB1m m\u1EC7t m\u1ECFi, tay gi\u1EEF b\u1EE5ng
+        b\u1EA7u. "
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX: []
+      isFadedIn: 0
+      fadedInDuration: 0
+      isFadedOut: 0
+      fadedOutDuration: 0
+    - content: "\"Kh\xF4ng c\xF2n c\xE1ch n\xE0o sao?\" - Ng\u01B0\u1EDDi \u0111\xE0n
+        \xF4ng h\u1ECFi "
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX: []
+      isFadedIn: 0
+      fadedInDuration: 0
+      isFadedOut: 0
+      fadedOutDuration: 0
+    - content: 'blah blah blah
+
+'
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX: []
+      isFadedIn: 0
+      fadedInDuration: 0
+      isFadedOut: 1
+      fadedOutDuration: 2
+    - content: "Th\u1ECB quay sang nh\xECn ch\u1ED3ng. Kh\u1EBD g\u1EADt \u0111\u1EA7u.
+        Ng\u01B0\u1EDDi ch\u1ED3ng n\u1EAFm ch\u1EB7t tay v\u1EE3. D\u1ED3n ch\xFAt
+        l\u1EF1c c\xF2n l\u1EA1i, ng\u01B0\u1EDDi v\u1EE3 b\u1EADt ra ti\u1EBFng n\xF3i
+        khe kh\u1EBD:"
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX: []
+      isFadedIn: 1
+      fadedInDuration: 2
+      isFadedOut: 0
+      fadedOutDuration: 0
+    - content: "T\xF4i.. c\xF3 m\u1EC7nh h\u1EC7... g\xEC c\u0169ng... \u0111\u01B0\u1EE3c.....,
+        \xF4ng nh\u1EA5t \u0111\u1ECBnh.... ph\u1EA3i c\u1EE9u con c\u1EE7a ch\xFAng
+        ....ta"
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX: []
+      isFadedIn: 1
+      fadedInDuration: 2
+      isFadedOut: 0
+      fadedOutDuration: 0
+    - content: "B\u1EB9p ra \u0111\u1EE9a con, gh\xEA bm"
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX:
+      - clip: {fileID: 8300000, guid: c360db2c3df5f0a4d8d9a4112f5c7740, type: 3}
+        volume: 0.955
+      isFadedIn: 1
+      fadedInDuration: 2
+      isFadedOut: 0
+      fadedOutDuration: 0
+    - content: "TI\xCAU \u0110\u1EC0 \"T\u1EA4M\" B\u1EF0 \u1EDE GI\u1EEEA"
+      bgm:
+        clip: {fileID: 0}
+        volume: 0
+      startOverBGM: 0
+      SFX:
+      - clip: {fileID: 8300000, guid: 7d3baf7b557c95d4dacf7a3640fc85ab, type: 3}
+        volume: 1
+      isFadedIn: 1
+      fadedInDuration: 2
+      isFadedOut: 0
+      fadedOutDuration: 0
