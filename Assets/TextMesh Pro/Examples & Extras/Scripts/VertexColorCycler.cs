@@ -26,6 +26,7 @@ namespace TMPro.Examples
         /// Method to animate vertex colors of a TMP Text object.
         /// </summary>
         /// <returns></returns>
+
         IEnumerator AnimateVertexColors()
         {
             // Force the text object to update right away so we can have geometry to modify right from the start.

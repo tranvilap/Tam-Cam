@@ -14,13 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dialogues:
     array:
-    - content: "\"K\u1EBDo c\xE0 k\u1EBDo k\u1EB9t D\xE1m tranh ch\u1ED3ng ch\u1ECB
-        Ch\u1ECB kho\xE9t m\u1EAFt ra...\""
+    - content: "\"K\u1EBDo c\xE0 k\u1EBDo k\u1EB9t <i>D\xE1m</i> <b>tranh</b> <color=\"red\">ch\u1ED3ng
+        ch\u1ECB Ch\u1ECB kho\xE9t m\u1EAFt ra...\""
       bgm:
         clip: {fileID: 0}
         volume: 0
       startOverBGM: 0
-      SFX: []
+      SFX:
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 1
       fadedInDuration: 2
       isFadedOut: 1
@@ -34,7 +36,7 @@ MonoBehaviour:
         volume: 1
       startOverBGM: 0
       SFX:
-      - clip: {fileID: 8300000, guid: 441bbc105e6ea384185e3f4cafcade70, type: 3}
+        clip: {fileID: 0}
         volume: 1
       isFadedIn: 0
       fadedInDuration: 0
@@ -47,7 +49,9 @@ MonoBehaviour:
         clip: {fileID: 0}
         volume: 0
       startOverBGM: 0
-      SFX: []
+      SFX:
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 0
       fadedInDuration: 0
       isFadedOut: 0
@@ -58,7 +62,9 @@ MonoBehaviour:
         clip: {fileID: 0}
         volume: 0
       startOverBGM: 0
-      SFX: []
+      SFX:
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 0
       fadedInDuration: 0
       isFadedOut: 0
@@ -70,7 +76,9 @@ MonoBehaviour:
         clip: {fileID: 0}
         volume: 0
       startOverBGM: 0
-      SFX: []
+      SFX:
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 0
       fadedInDuration: 0
       isFadedOut: 1
@@ -83,7 +91,9 @@ MonoBehaviour:
         clip: {fileID: 0}
         volume: 0
       startOverBGM: 0
-      SFX: []
+      SFX:
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 1
       fadedInDuration: 2
       isFadedOut: 0
@@ -95,7 +105,9 @@ MonoBehaviour:
         clip: {fileID: 0}
         volume: 0
       startOverBGM: 0
-      SFX: []
+      SFX:
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 1
       fadedInDuration: 2
       isFadedOut: 0
@@ -106,8 +118,8 @@ MonoBehaviour:
         volume: 0
       startOverBGM: 0
       SFX:
-      - clip: {fileID: 8300000, guid: c360db2c3df5f0a4d8d9a4112f5c7740, type: 3}
-        volume: 0.955
+        clip: {fileID: 0}
+        volume: 1
       isFadedIn: 1
       fadedInDuration: 2
       isFadedOut: 0
@@ -118,7 +130,7 @@ MonoBehaviour:
         volume: 0
       startOverBGM: 0
       SFX:
-      - clip: {fileID: 8300000, guid: 7d3baf7b557c95d4dacf7a3640fc85ab, type: 3}
+        clip: {fileID: 0}
         volume: 1
       isFadedIn: 1
       fadedInDuration: 2

@@ -13,7 +13,22 @@ MonoBehaviour:
   m_Name: Route 2
   m_EditorClassIdentifier: 
   dialogues:
-    array: []
+    array:
+    - characterName: 
+      content: "\xD4i <color=\"red\">ho\xE0ng t\u1EED</color>, h\xE3y tha th\u1EE9
+        cho ng\u01B0\u1EDDi em g\xE1i b\u1ECB tr\xFAng l\u1EDDi nguy\u1EC1n"
+      isAdditive: 0
+      introTextEffect: 1
+      outroTextEffect: 0
+      fadeInDuration: 0
+      fadeOutDuration: 0
+    - characterName: 
+      content: ' Mot cai fade in moi co them <color="blue"> mau sac </color>'
+      isAdditive: 1
+      introTextEffect: 2
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
   questions:
     array: []
   nextRoute: {fileID: 0}
