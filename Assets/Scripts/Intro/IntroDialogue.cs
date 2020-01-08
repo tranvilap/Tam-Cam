@@ -12,7 +12,7 @@ public class IntroDialogue
     public bool startOverBGM;
     public Audio SFX;
 
-    [Header("Text Transistors")]
+    [Header("Text Transitions")]
     public bool isFadedIn;
     public float fadedInDuration;
 

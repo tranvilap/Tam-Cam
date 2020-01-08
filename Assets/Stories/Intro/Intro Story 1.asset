@@ -56,19 +56,6 @@ MonoBehaviour:
       fadedInDuration: 0
       isFadedOut: 0
       fadedOutDuration: 0
-    - content: "\"Kh\xF4ng c\xF2n c\xE1ch n\xE0o sao?\" - Ng\u01B0\u1EDDi \u0111\xE0n
-        \xF4ng h\u1ECFi "
-      bgm:
-        clip: {fileID: 0}
-        volume: 0
-      startOverBGM: 0
-      SFX:
-        clip: {fileID: 0}
-        volume: 1
-      isFadedIn: 0
-      fadedInDuration: 0
-      isFadedOut: 0
-      fadedOutDuration: 0
     - content: 'blah blah blah
 
 '

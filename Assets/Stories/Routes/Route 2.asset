@@ -23,9 +23,51 @@ MonoBehaviour:
       fadeInDuration: 0
       fadeOutDuration: 0
     - characterName: 
+      content: Type writer noi tiep <size="33"> Them 1 tag size nua</size>
+      isAdditive: 1
+      introTextEffect: 1
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
+    - characterName: 
+      content: ' Mot cai type writer moi co them <color="blue"> mau sac </color>'
+      isAdditive: 1
+      introTextEffect: 1
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
+    - characterName: 
       content: ' Mot cai fade in moi co them <color="blue"> mau sac </color>'
       isAdditive: 1
       introTextEffect: 2
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
+    - characterName: 
+      content: Fade in moi tinh
+      isAdditive: 0
+      introTextEffect: 2
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
+    - characterName: 
+      content: Fade in noi tiep fade in hoi nay
+      isAdditive: 1
+      introTextEffect: 2
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
+    - characterName: 
+      content: fade in co tag <color="green">mau sac khac nua</color>
+      isAdditive: 1
+      introTextEffect: 2
+      outroTextEffect: 0
+      fadeInDuration: 2
+      fadeOutDuration: 0
+    - characterName: 
+      content: ' typewriter additive vao'
+      isAdditive: 1
+      introTextEffect: 1
       outroTextEffect: 0
       fadeInDuration: 2
       fadeOutDuration: 0

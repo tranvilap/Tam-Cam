@@ -9,13 +9,13 @@ namespace TamCam.MainGame
     public class GameController : MonoBehaviour
     {
         [SerializeField] TextMeshProUGUI contentTextGUI = null;
+        [SerializeField] Image completeBubble = null;
         [SerializeField] Route firstRoute = null;
         [SerializeField] float typeWriterSpeed = 0.02f;
 
-        [SerializeField] Image completeBubble = null;
-
-        Route isPlayingRoute;
+        Route currentRoute;
         int currentDialogueIndex = 0;
+        string currentDisplayContent = "";
 
         Coroutine fadeIn, fadeOut, typeWriter;
 
@@ -57,9 +57,10 @@ namespace TamCam.MainGame
         // Start is called before the first frame update
         void Start()
         {
-            if (isPlayingRoute == null)
+            currentDisplayContent = contentTextGUI.text;
+            if (currentRoute == null)
             {
-                isPlayingRoute = firstRoute;
+                currentRoute = firstRoute;
             }
             ProceedNextDialogue();
         }
@@ -67,6 +68,7 @@ namespace TamCam.MainGame
         // Update is called once per frame
         void Update()
         {
+
             if (Input.GetMouseButtonUp(0))
             {
                 if (isTextTransitioning)
@@ -75,7 +77,7 @@ namespace TamCam.MainGame
                 }
                 else
                 {
-                    if (currentDialogueIndex >= isPlayingRoute.Dialogues.Count)
+                    if (currentDialogueIndex >= currentRoute.Dialogues.Count)
                     {
                         Debug.Log("END ROUTE");
                     }
@@ -89,16 +91,15 @@ namespace TamCam.MainGame
 
         private void ProceedNextDialogue()
         {
-            Dialogue currentDialogue = isPlayingRoute.Dialogues[currentDialogueIndex];
+            Dialogue currentDialogue = currentRoute.Dialogues[currentDialogueIndex];
             DisplayContent(currentDialogue);
             currentDialogueIndex++;
         }
 
         private void DisplayContent(Dialogue dialogue)
         {
-
-            Debug.Log("Display Content");
-
+            if (fadeIn != null) { fadeIn = null; }
+            if (typeWriter != null) { typeWriter = null; }
             if (completeBubble != null)
             {
                 completeBubble.gameObject.SetActive(false);
@@ -106,18 +107,18 @@ namespace TamCam.MainGame
 
             if (dialogue.IntroTextEffect == IntroTextEffect.Normal)
             {
-                DisplayText_Normal(contentTextGUI, dialogue.Content, dialogue.IsAdditive);
+                DisplayText_Normal(dialogue.Content, dialogue.IsAdditive);
                 return;
             }
 
             isTextTransitioning = true;
             if (dialogue.IntroTextEffect == IntroTextEffect.Typewriter)
             {
-                typeWriter = StartCoroutine(TypewriterEffect(contentTextGUI, dialogue.Content, typeWriterSpeed, dialogue.IsAdditive));
+                typeWriter = StartCoroutine(TypewriterEffect(dialogue.Content, typeWriterSpeed, dialogue.IsAdditive));
             }
             else if (dialogue.IntroTextEffect == IntroTextEffect.FadeIn)
             {
-                fadeIn = StartCoroutine(FadeInEffect(contentTextGUI, dialogue.Content, dialogue.FadeInDuration, dialogue.IsAdditive));
+                fadeIn = StartCoroutine(FadeInEffect(dialogue.Content, dialogue.FadeInDuration, dialogue.IsAdditive));
             }
 
         }
@@ -127,21 +128,37 @@ namespace TamCam.MainGame
             if (!isTextTransitioning) { return; }
 
             isTextTransitioning = false;
-            Debug.Log("Complete transition");
+
             if (fadeIn != null)
             {
+                Debug.Log("Completed Fade In transition");
                 StopCoroutine(fadeIn);
                 fadeIn = null;
                 string temp = contentTextGUI.text;
                 contentTextGUI.text = "";
-                contentTextGUI.text = temp;
+                SetContentText(temp);
                 contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 1f);
             }
             if (typeWriter != null)
             {
+                Debug.Log("Completed TypeWriter transition");
                 StopCoroutine(typeWriter);
                 typeWriter = null;
-                contentTextGUI.text = isPlayingRoute.Dialogues[currentDialogueIndex - 1].Content;
+                if (!currentRoute.Dialogues[currentDialogueIndex - 1].IsAdditive)
+                {
+                    SetContentText(currentRoute.Dialogues[currentDialogueIndex - 1].Content);
+                }
+                else
+                {
+                    if ((currentDialogueIndex - 1) < 0)
+                    {
+                        SetContentText(currentDisplayContent);
+                    }
+                    else
+                    {
+                        SetContentText(currentDisplayContent + currentRoute.Dialogues[currentDialogueIndex - 1].Content);
+                    }
+                }
             }
             if (completeBubble != null)
             {
@@ -151,20 +168,20 @@ namespace TamCam.MainGame
 
         private void ChangeRoute(Route route)
         {
-            isPlayingRoute = route;
+            currentRoute = route;
             currentDialogueIndex = 0;
         }
 
 
-        public void DisplayText_Normal(TextMeshProUGUI textMesh, string text, bool isConjunctive = false)
+        public void DisplayText_Normal(string text, bool isConjunctive = false)
         {
             if (isConjunctive)
             {
-                textMesh.text += text;
+                SetContentText(contentTextGUI.text + text);
             }
             else
             {
-                textMesh.text = text;
+                SetContentText(text);
             }
             if (completeBubble != null)
             {
@@ -172,17 +189,18 @@ namespace TamCam.MainGame
             }
         }
 
-        public IEnumerator TypewriterEffect(TextMeshProUGUI textMesh, string text, float speed, bool isAdditive)
+        public IEnumerator TypewriterEffect(string text, float speed, bool isAdditive)
         {
             int isSkipping = 0;
-            string temp = "";
+            isTextTransitioning = true;
             if (!isAdditive)
             {
-                textMesh.text = "";
+                contentTextGUI.text = "";
             }
+            string temp = contentTextGUI.text;
             if (speed < 0)
             {
-                textMesh.text = text;
+                contentTextGUI.text = text;
             }
             else
             {
@@ -195,7 +213,7 @@ namespace TamCam.MainGame
                     }
                     if (isSkipping == 0)
                     {
-                        textMesh.text += character;
+                        contentTextGUI.text += character;
                         yield return new WaitForSeconds(speed);
                     }
                     if (character.Equals('>'))
@@ -206,48 +224,42 @@ namespace TamCam.MainGame
                         }
                         if (isSkipping == 0)
                         {
-                            textMesh.text = temp;
-
+                            contentTextGUI.text = temp;
                         }
                     }
                 }
             }
+            SetContentText(contentTextGUI.text);
             if (completeBubble != null)
             {
                 completeBubble.gameObject.SetActive(true);
             }
+            isTextTransitioning = false;
         }
 
-        public IEnumerator FadeInEffect(TextMeshProUGUI textMesh, string text, float duration, bool isAdditive)
+        public IEnumerator FadeInEffect(string text, float duration, bool isAdditive)
         {
+            isTextTransitioning = true;
             if (duration > Mathf.Epsilon)
             {
                 if (isAdditive)
                 {
-                    int lastIndex = 0;
-                    int inTags = 0;
-                    foreach (var c in textMesh.text)
-                    {
-                        if (c.Equals('<')) { inTags++; continue; }
-                        if (inTags == 0)
-                        {
-                            lastIndex++;
-                        }
-                        if (c.Equals('>')) { inTags--; }
-                    }
+                    contentTextGUI.ForceMeshUpdate();
+                    var textInfo = contentTextGUI.textInfo;
 
-                    textMesh.text += text;
-                    int textLength = lastIndex + text.Length;
+                    int lastIndex = textInfo.characterCount;
+                    contentTextGUI.text += text;
 
-                    textMesh.ForceMeshUpdate();
+                    contentTextGUI.ForceMeshUpdate();
+                    int textLength = textInfo.characterCount;
 
                     Color32[] newVertexColors;
-                    var textInfo = textMesh.textInfo;
                     float timeLapsed = 0f;
+
 
                     while (timeLapsed < duration)
                     {
-                        timeLapsed += Time.deltaTime;
+                        int j = 0;
                         for (int i = lastIndex; i < textLength; i++)
                         {
                             // Get the index of the material used by the current character.
@@ -261,31 +273,34 @@ namespace TamCam.MainGame
 
                             if (textInfo.characterInfo[i].isVisible)
                             {
+
                                 byte alpha = (byte)Mathf.Clamp((timeLapsed / duration) * 255, 0, 255);
+
                                 newVertexColors[vertexIndex + 0].a = alpha;
                                 newVertexColors[vertexIndex + 1].a = alpha;
                                 newVertexColors[vertexIndex + 2].a = alpha;
                                 newVertexColors[vertexIndex + 3].a = alpha;
 
                                 // New function which pushes (all) updated vertex data to the appropriate meshes when using either the Mesh Renderer or CanvasRenderer.
-                                textMesh.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+                                contentTextGUI.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
 
                                 // This last process could be done to only update the vertex data that has changed as opposed to all of the vertex data but it would require extra steps and knowing what type of renderer is used.
                                 // These extra steps would be a performance optimization but it is unlikely that such optimization will be necessary.
                             }
                         }
+                        timeLapsed += Time.deltaTime;
                         yield return null;
                     }
                 }
                 else
                 {
-                    textMesh.text = text;
-                    textMesh.color = new Color(textMesh.color.r, textMesh.color.g, textMesh.color.b, 0f);
+                    contentTextGUI.text = text;
+                    contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 0f);
                     float timeLapsed = 0f;
                     while (timeLapsed < duration)
                     {
                         timeLapsed += Time.deltaTime;
-                        textMesh.color = new Color(textMesh.color.r, textMesh.color.g, textMesh.color.b, timeLapsed / duration);
+                        contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, timeLapsed / duration);
                         yield return null;
                     }
                 }
@@ -294,20 +309,28 @@ namespace TamCam.MainGame
             {
                 if (isAdditive)
                 {
-                    textMesh.text += text;
+                    contentTextGUI.text += text;
                 }
                 else
                 {
-                    textMesh.text = text;
+                    contentTextGUI.text = text;
                 }
             }
-
+            SetContentText(contentTextGUI.text);
             if (completeBubble != null)
             {
                 completeBubble.gameObject.SetActive(true);
             }
-            textMesh.color = new Color(textMesh.color.r, textMesh.color.g, textMesh.color.b, 1f);
+            contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 1f);
+            isTextTransitioning = false;
         }
-    }
 
+        private void SetContentText(string text)
+        {
+            contentTextGUI.text = text;
+            currentDisplayContent = text;
+        }
+
+
+    }
 }
