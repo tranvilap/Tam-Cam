@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e30de1eea1c8e394483604c9364784f9, type: 3}
+  m_Name: Route
+  m_EditorClassIdentifier: 
+  dialogues:
+    array:
+    - characterName: 
+      content: "\xD4i <color=\"red\">ho\xE0ng t\u1EED</color>, h\xE3y tha th\u1EE9
+        cho ng\u01B0\u1EDDi em g\xE1i b\u1ECB tr\xFAng l\u1EDDi nguy\u1EC1n"
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+    - characterName: 
+      content: Type writer noi tiep <size="33"> Them 1 tag size nua</size>
+      isAdditive: 1
+      introTextEffect: 1
+      fadeInDuration: 2
+    - characterName: 
+      content: ' Mot cai type writer moi co them <color="blue"> mau sac </color>'
+      isAdditive: 1
+      introTextEffect: 1
+      fadeInDuration: 2
+    - characterName: 
+      content: ' Mot cai fade in moi co them <color="blue"> mau sac </color>'
+      isAdditive: 1
+      introTextEffect: 2
+      fadeInDuration: 2
+    - characterName: 
+      content: Fade in moi tinh
+      isAdditive: 0
+      introTextEffect: 2
+      fadeInDuration: 2
+    - characterName: 
+      content: Fade in noi tiep fade in hoi nay
+      isAdditive: 1
+      introTextEffect: 2
+      fadeInDuration: 2
+    - characterName: 
+      content: fade in co tag <color="green">mau sac khac nua</color>
+      isAdditive: 1
+      introTextEffect: 2
+      fadeInDuration: 2
+    - characterName: 
+      content: ' typewriter additive vao'
+      isAdditive: 1
+      introTextEffect: 1
+      fadeInDuration: 2
+  choices:
+    array:
+    - choiceName: Route 2
+      nextRoute: {fileID: 11400000, guid: 10ebd9185dfb0fd4b95a4883d24f1fc5, type: 2}
+    - choiceName: Route 3
+      nextRoute: {fileID: 11400000, guid: 7b3169cce255c7148918b70e58073a4b, type: 2}
+  nextRoute: {fileID: 0}
+  changeRouteQuestion: WHERE'S THE LAMB SAUCE

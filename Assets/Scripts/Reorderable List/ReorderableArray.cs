@@ -15,6 +15,14 @@ namespace Malee {
 			: this(0) {
 		}
 
+        public List<T> List
+        {
+            get
+            {
+                return array;
+            }
+        }
+
 		public ReorderableArray(int length) {
 
 			array = new List<T>(length);

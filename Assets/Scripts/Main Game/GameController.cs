@@ -8,16 +8,23 @@ namespace TamCam.MainGame
 {
     public class GameController : MonoBehaviour
     {
+        [Header("GUI")]
         [SerializeField] TextMeshProUGUI contentTextGUI = null;
+        [SerializeField] GameObject questionAndChoicesPanel = null;
+        [SerializeField] TextMeshProUGUI questionGUI = null;
+        [SerializeField] GameObject choicesArea = null;
         [SerializeField] Image completeBubble = null;
+        [SerializeField] Button choiceButtonPrefab = null;
+
+        [Header("Game")]
         [SerializeField] Route firstRoute = null;
         [SerializeField] float typeWriterSpeed = 0.02f;
 
         Route currentRoute;
         int currentDialogueIndex = 0;
         string currentDisplayContent = "";
-
-        Coroutine fadeIn, fadeOut, typeWriter;
+        Coroutine fadeIn, typeWriter;
+        bool isChoosingQuestion = false;
 
         private static GameController instance;
         private GameController() { }
@@ -57,6 +64,11 @@ namespace TamCam.MainGame
         // Start is called before the first frame update
         void Start()
         {
+            if (CheckNotNullChoiceGUIComponents())
+            {
+                questionAndChoicesPanel.SetActive(false);
+
+            }
             currentDisplayContent = contentTextGUI.text;
             if (currentRoute == null)
             {
@@ -79,7 +91,11 @@ namespace TamCam.MainGame
                 {
                     if (currentDialogueIndex >= currentRoute.Dialogues.Count)
                     {
-                        Debug.Log("END ROUTE");
+                        if (isChoosingQuestion) { return; }
+                        if (currentRoute.Choices.Count > 0)
+                        {
+                            ShowQuestionAndChoices(currentRoute.ChangeRouteQuestion, currentRoute.Choices.List);
+                        }
                     }
                     else
                     {
@@ -89,13 +105,52 @@ namespace TamCam.MainGame
             }
         }
 
+        #region Main Methods
         private void ProceedNextDialogue()
         {
             Dialogue currentDialogue = currentRoute.Dialogues[currentDialogueIndex];
             DisplayContent(currentDialogue);
             currentDialogueIndex++;
         }
+        private void ShowQuestionAndChoices(string question, List<Choice> choices)
+        {
+            if (!CheckNotNullChoiceGUIComponents()) { return; }
 
+            isChoosingQuestion = true;
+            questionAndChoicesPanel.SetActive(true);
+            questionGUI.text = question;
+            foreach (var choice in choices)
+            {
+                Button button = Instantiate(choiceButtonPrefab, choicesArea.transform);
+
+                button.onClick.AddListener(delegate { SelectChangeRouteChoice(choice.nextRoute); });
+            }
+
+        }
+        #endregion
+
+        #region Common Methods
+        private void SetContentText(string text)
+        {
+            contentTextGUI.text = text;
+            currentDisplayContent = text;
+        }
+        private void SelectChangeRouteChoice(Route route)
+        {
+            currentRoute = route;
+            currentDialogueIndex = 0;
+            isChoosingQuestion = false;
+            if (!CheckNotNullChoiceGUIComponents()) { return; }
+
+            questionAndChoicesPanel.SetActive(false);
+            foreach (Transform child in choicesArea.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+        #endregion
+
+        #region Displaying Content Methods
         private void DisplayContent(Dialogue dialogue)
         {
             if (fadeIn != null) { fadeIn = null; }
@@ -165,13 +220,6 @@ namespace TamCam.MainGame
                 completeBubble.gameObject.SetActive(true);
             }
         }
-
-        private void ChangeRoute(Route route)
-        {
-            currentRoute = route;
-            currentDialogueIndex = 0;
-        }
-
 
         public void DisplayText_Normal(string text, bool isConjunctive = false)
         {
@@ -259,7 +307,6 @@ namespace TamCam.MainGame
 
                     while (timeLapsed < duration)
                     {
-                        int j = 0;
                         for (int i = lastIndex; i < textLength; i++)
                         {
                             // Get the index of the material used by the current character.
@@ -324,13 +371,44 @@ namespace TamCam.MainGame
             contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 1f);
             isTextTransitioning = false;
         }
+        #endregion
 
-        private void SetContentText(string text)
+
+        #region Misc
+        private bool CheckNotNullChoiceGUIComponents(bool showErrorLog = true)
         {
-            contentTextGUI.text = text;
-            currentDisplayContent = text;
+            bool result = (questionAndChoicesPanel != null) && (questionGUI != null) && (choicesArea != null) && (choiceButtonPrefab != null);
+            if (!result && showErrorLog)
+            {
+                if (questionAndChoicesPanel == null)
+                {
+                    Debug.LogError("Couldn't access to QuestionAndChoices Panel ");
+                }
+                if (questionGUI == null)
+                {
+                    Debug.LogError("Couldn't access to Question Text");
+                }
+                if (choicesArea == null)
+                {
+                    Debug.LogError("Couldn't access to Choice Area");
+                }
+                if (choiceButtonPrefab == null)
+                {
+                    Debug.LogError("Button prefab is null");
+                }
+            }
+            return result;
+
         }
-
-
+        public void ResetAllRoute()
+        {
+            if (firstRoute == null)
+            {
+                Debug.LogError("Missing First Route");
+                return;
+            }
+            SelectChangeRouteChoice(firstRoute);
+        }
+        #endregion
     }
 }
