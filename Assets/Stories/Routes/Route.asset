@@ -17,7 +17,7 @@ MonoBehaviour:
     - characterName: 
       content: "\xD4i <color=\"red\">ho\xE0ng t\u1EED</color>, h\xE3y tha th\u1EE9
         cho ng\u01B0\u1EDDi em g\xE1i b\u1ECB tr\xFAng l\u1EDDi nguy\u1EC1n"
-      isAdditive: 0
+      isAdditive: 1
       introTextEffect: 1
       fadeInDuration: 0
     - characterName: 
@@ -55,6 +55,7 @@ MonoBehaviour:
       isAdditive: 1
       introTextEffect: 1
       fadeInDuration: 2
+  changeRouteQuestion: WHERE'S THE LAMB SAUCE
   choices:
     array:
     - choiceName: Route 2
@@ -62,4 +63,3 @@ MonoBehaviour:
     - choiceName: Route 3
       nextRoute: {fileID: 11400000, guid: 7b3169cce255c7148918b70e58073a4b, type: 2}
   nextRoute: {fileID: 0}
-  changeRouteQuestion: WHERE'S THE LAMB SAUCE

@@ -25,6 +25,8 @@ namespace TamCam.MainGame
         string currentDisplayContent = "";
         Coroutine fadeIn, typeWriter;
         bool isChoosingQuestion = false;
+        List<Route> playedRoute = new List<Route>();
+        public List<Sprite> characters;
 
         private static GameController instance;
         private GameController() { }
@@ -95,6 +97,11 @@ namespace TamCam.MainGame
                         if (currentRoute.Choices.Count > 0)
                         {
                             ShowQuestionAndChoices(currentRoute.ChangeRouteQuestion, currentRoute.Choices.List);
+                            return;
+                        }
+                        if(currentRoute.NextRoute != null)
+                        {
+                            ChangeRoute(currentRoute.NextRoute);
                         }
                     }
                     else
@@ -122,8 +129,8 @@ namespace TamCam.MainGame
             foreach (var choice in choices)
             {
                 Button button = Instantiate(choiceButtonPrefab, choicesArea.transform);
-
-                button.onClick.AddListener(delegate { SelectChangeRouteChoice(choice.nextRoute); });
+                //Add Name to the button
+                button.onClick.AddListener(delegate { ChangeRoute(choice.nextRoute); });
             }
 
         }
@@ -135,11 +142,12 @@ namespace TamCam.MainGame
             contentTextGUI.text = text;
             currentDisplayContent = text;
         }
-        private void SelectChangeRouteChoice(Route route)
+        private void ChangeRoute(Route route)
         {
             currentRoute = route;
             currentDialogueIndex = 0;
             isChoosingQuestion = false;
+            playedRoute.Add(route);
             if (!CheckNotNullChoiceGUIComponents()) { return; }
 
             questionAndChoicesPanel.SetActive(false);
@@ -372,8 +380,7 @@ namespace TamCam.MainGame
             isTextTransitioning = false;
         }
         #endregion
-
-
+        
         #region Misc
         private bool CheckNotNullChoiceGUIComponents(bool showErrorLog = true)
         {
@@ -407,7 +414,7 @@ namespace TamCam.MainGame
                 Debug.LogError("Missing First Route");
                 return;
             }
-            SelectChangeRouteChoice(firstRoute);
+            ChangeRoute(firstRoute);
         }
         #endregion
     }
