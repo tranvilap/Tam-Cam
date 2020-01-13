@@ -269,6 +269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   contentTextGUI: {fileID: 0}
+  background: {fileID: 0}
   questionAndChoicesPanel: {fileID: 0}
   questionGUI: {fileID: 0}
   choicesArea: {fileID: 0}

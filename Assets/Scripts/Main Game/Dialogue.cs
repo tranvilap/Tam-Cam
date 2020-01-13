@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TamCam.Commons;
+using UnityEngine.EventSystems;
+using UnityEngine.Events;
+using Malee;
 
 namespace TamCam.MainGame
 {
@@ -26,6 +29,9 @@ namespace TamCam.MainGame
         [SerializeField] [Tooltip("Used for Fade In Intro Effect")] private float fadeInDuration = 0f;
         //[SerializeField] [Tooltip("Used for Fade Out Outro Effect")] private float fadeOutDuration = 0f;
 
+        [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
+        [SerializeField] DialogueEventList events = null;
+
         #region Properties (Getters and Setters)
         public IntroTextEffect IntroTextEffect { get => introTextEffect; }
         //public OutroTextEffect OutroTextEffect { get => outroTextEffect; }
@@ -34,7 +40,16 @@ namespace TamCam.MainGame
         public bool IsAdditive { get => isAdditive; }
         public float FadeInDuration { get => fadeInDuration; }
         //public float FadeOutDuration { get => fadeOutDuration; }
+        public DialogueEventList Events { get => events; }
         #endregion
     }
+    [Serializable]
+    public class DialogueEvent
+    {
+        public DialogueEventType eventType;
+        public string[] parameters;
+    }
+    [Serializable]
+    public class DialogueEventList : ReorderableArray<DialogueEvent> { }
 }
 

@@ -15,51 +15,81 @@ MonoBehaviour:
   dialogues:
     array:
     - characterName: 
-      content: "\xD4i <color=\"red\">ho\xE0ng t\u1EED</color>, h\xE3y tha th\u1EE9
-        cho ng\u01B0\u1EDDi em g\xE1i b\u1ECB tr\xFAng l\u1EDDi nguy\u1EC1n"
-      isAdditive: 1
+      content: '[Guu...]'
+      isAdditive: 0
       introTextEffect: 1
       fadeInDuration: 0
+      events:
+        array:
+        - eventType: 2
+          parameters:
+          - 0
+        - eventType: 0
+          parameters:
+          - 0
+          - 0.7
     - characterName: 
-      content: Type writer noi tiep <size="33"> Them 1 tag size nua</size>
-      isAdditive: 1
-      introTextEffect: 1
-      fadeInDuration: 2
-    - characterName: 
-      content: ' Mot cai type writer moi co them <color="blue"> mau sac </color>'
-      isAdditive: 1
-      introTextEffect: 1
-      fadeInDuration: 2
-    - characterName: 
-      content: ' Mot cai fade in moi co them <color="blue"> mau sac </color>'
-      isAdditive: 1
-      introTextEffect: 2
-      fadeInDuration: 2
-    - characterName: 
-      content: Fade in moi tinh
+      content: No sign of her waking up
       isAdditive: 0
-      introTextEffect: 2
-      fadeInDuration: 2
-    - characterName: 
-      content: Fade in noi tiep fade in hoi nay
-      isAdditive: 1
-      introTextEffect: 2
-      fadeInDuration: 2
-    - characterName: 
-      content: fade in co tag <color="green">mau sac khac nua</color>
-      isAdditive: 1
-      introTextEffect: 2
-      fadeInDuration: 2
-    - characterName: 
-      content: ' typewriter additive vao'
-      isAdditive: 1
       introTextEffect: 1
-      fadeInDuration: 2
-  changeRouteQuestion: WHERE'S THE LAMB SAUCE
+      fadeInDuration: 0
+      events:
+        array: []
+    - characterName: 
+      content: '[If we had school, we''d be late by now]'
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+      events:
+        array: []
+    - characterName: 
+      content: Another hour later
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+      events:
+        array:
+        - eventType: 2
+          parameters:
+          - 1
+    - characterName: 
+      content: '[Gu...]'
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+      events:
+        array:
+        - eventType: 2
+          parameters:
+          - 0
+          - 1
+    - characterName: 
+      content: She's still not up
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+      events:
+        array: []
+    - characterName: 
+      content: Then doorbell rings
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+      events:
+        array:
+        - eventType: 1
+          parameters:
+          - 0
+          - 0.3
+        - eventType: 2
+          parameters:
+          - 1
+          - 1
+  changeRouteQuestion: What should I do ?
   choices:
     array:
-    - choiceName: Route 2
+    - choiceName: Ignore it
       nextRoute: {fileID: 11400000, guid: 10ebd9185dfb0fd4b95a4883d24f1fc5, type: 2}
-    - choiceName: Route 3
+    - choiceName: Open the door
       nextRoute: {fileID: 11400000, guid: 7b3169cce255c7148918b70e58073a4b, type: 2}
   nextRoute: {fileID: 0}

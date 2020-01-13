@@ -4,29 +4,48 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using TamCam.Commons;
+using System.Reflection;
+using System;
+using Malee;
+
 namespace TamCam.MainGame
 {
     public class GameController : MonoBehaviour
     {
-        [Header("GUI")]
+        [Header("Reference")]
         [SerializeField] TextMeshProUGUI contentTextGUI = null;
+        [SerializeField] Image background = null;
         [SerializeField] GameObject questionAndChoicesPanel = null;
         [SerializeField] TextMeshProUGUI questionGUI = null;
         [SerializeField] GameObject choicesArea = null;
         [SerializeField] Image completeBubble = null;
         [SerializeField] Button choiceButtonPrefab = null;
+        [SerializeField] AudioSource bgmPlayer = null;
+        [SerializeField] AudioSource sfxPlayer = null;
 
         [Header("Game")]
         [SerializeField] Route firstRoute = null;
         [SerializeField] float typeWriterSpeed = 0.02f;
 
+        [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
+        [SerializeField] BackgroundList backgrounds = null;
+
+        [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
+        [SerializeField] AudioClipList bgms = null;
+
+        [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
+        [SerializeField] AudioClipList sfxs = null;
+
+
+        bool isChoosingQuestion = false;
+        bool isTextTransitioning = false;
+        bool isUIChanging = false;
+
         Route currentRoute;
         int currentDialogueIndex = 0;
         string currentDisplayContent = "";
         Coroutine fadeIn, typeWriter;
-        bool isChoosingQuestion = false;
         List<Route> playedRoute = new List<Route>();
-        public List<Sprite> characters;
 
         private static GameController instance;
         private GameController() { }
@@ -61,12 +80,10 @@ namespace TamCam.MainGame
             }
         }
 
-        bool isTextTransitioning = false;
-
         // Start is called before the first frame update
         void Start()
         {
-            if (CheckNotNullChoiceGUIComponents())
+            if (!CheckNullChoiceGUIComponents())
             {
                 questionAndChoicesPanel.SetActive(false);
 
@@ -82,9 +99,9 @@ namespace TamCam.MainGame
         // Update is called once per frame
         void Update()
         {
-
             if (Input.GetMouseButtonUp(0))
             {
+                if (isUIChanging) { return; }
                 if (isTextTransitioning)
                 {
                     CompleteCurrentTextTransition();
@@ -99,7 +116,7 @@ namespace TamCam.MainGame
                             ShowQuestionAndChoices(currentRoute.ChangeRouteQuestion, currentRoute.Choices.List);
                             return;
                         }
-                        if(currentRoute.NextRoute != null)
+                        if (currentRoute.NextRoute != null)
                         {
                             ChangeRoute(currentRoute.NextRoute);
                         }
@@ -117,11 +134,12 @@ namespace TamCam.MainGame
         {
             Dialogue currentDialogue = currentRoute.Dialogues[currentDialogueIndex];
             DisplayContent(currentDialogue);
+            ExecuteEvents(currentDialogue);
             currentDialogueIndex++;
         }
         private void ShowQuestionAndChoices(string question, List<Choice> choices)
         {
-            if (!CheckNotNullChoiceGUIComponents()) { return; }
+            if (CheckNullChoiceGUIComponents()) { return; }
 
             isChoosingQuestion = true;
             questionAndChoicesPanel.SetActive(true);
@@ -148,7 +166,7 @@ namespace TamCam.MainGame
             currentDialogueIndex = 0;
             isChoosingQuestion = false;
             playedRoute.Add(route);
-            if (!CheckNotNullChoiceGUIComponents()) { return; }
+            if (CheckNullChoiceGUIComponents()) { return; }
 
             questionAndChoicesPanel.SetActive(false);
             foreach (Transform child in choicesArea.transform)
@@ -156,9 +174,256 @@ namespace TamCam.MainGame
                 Destroy(child.gameObject);
             }
         }
+        public Sprite GetBackground(int index)
+        {
+            if (index >= backgrounds.Count) { return null; }
+            return backgrounds.List[index];
+        }
+        public AudioClip GetAudioClip(AudioClipList list, int index)
+        {
+            if (index >= list.Count) { return null; }
+            return list.List[index];
+        }
+
         #endregion
 
-        #region Displaying Content Methods
+        #region Backgrounds
+        private void ChangeBackground(int backgroundIndex)
+        {
+            Sprite bg;
+            if (currentRoute == null)
+            {
+                Debug.LogError("Current route is null");
+                return;
+            }
+            if ((bg = GetBackground(backgroundIndex)) == null)
+            {
+                Debug.LogWarning("Couldn't get this index's background");
+                return;
+            }
+            if (CheckNullBackgroundGUIComponent()) { return; }
+            Debug.Log("Changed background");
+            background.sprite = bg;
+        }
+        private void ChangeBackground(int backgroundIndex, float fadeDuration)
+        {
+            ChangeBackground(backgroundIndex);
+            StartCoroutine(BackgroundFade(fadeDuration));
+        }
+        private IEnumerator BackgroundFade(float duration)
+        {
+            if (duration > Mathf.Epsilon && !isUIChanging)
+            {
+                isUIChanging = true;
+                background.color = new Color32(0, 0, 0, 255);
+                float timeLapsed = 0f;
+                while (timeLapsed < duration)
+                {
+                    timeLapsed += Time.deltaTime;
+                    byte colorByte = (byte)(Mathf.Clamp((timeLapsed / duration) * 255, 0f, 255f));
+                    background.color = new Color32(colorByte, colorByte, colorByte, 255);
+                    yield return null;
+                }
+                background.color = new Color32(255, 255, 255, 255);
+                isUIChanging = false;
+            }
+        }
+        #endregion
+
+        #region Audio
+        private void PlayAudio(AudioSource player, AudioClip clip, int index, float volume, bool isLoop = true)
+        {
+            player.Stop();
+            player.clip = clip;
+            player.loop = isLoop;
+            if (volume >= Mathf.Epsilon)
+            {
+                player.volume = volume;
+            }
+            else
+            {
+                player.volume = 0;
+            }
+            player.Play();
+        }
+        private void PlaySFX(int index, float volume = 1f, bool isLoop = false)
+        {
+            if (currentRoute == null) { Debug.LogError("Current route is null"); return; }
+            if (sfxPlayer == null) { Debug.LogError("Unassigned SFX Player"); return; }
+            AudioClip clip = GetAudioClip(sfxs, index);
+            if (clip == null) { Debug.LogWarning("Couldn't get this index's SFX clip"); return; }
+
+            PlayAudio(sfxPlayer, clip, index, volume, isLoop);
+        }
+        private void PlayBGM(int index, float volume = 1f, bool isLoop = true)
+        {
+            if (currentRoute == null) { Debug.LogError("Current route is null"); return; }
+            if (bgmPlayer == null) { Debug.LogError("Unassigned SFX Player"); return; }
+            AudioClip clip = GetAudioClip(bgms, index);
+            if (clip == null) { Debug.LogWarning("Couldn't get this index's SFX clip"); return; }
+
+            PlayAudio(bgmPlayer, clip, index, volume, isLoop);
+        }
+        #endregion
+
+        #region Dialogue's Events
+        private void ExecuteEvents(Dialogue dialogue)
+        {
+            if (dialogue.Events.Length == 0) { return; }
+            foreach (var ev in dialogue.Events)
+            {
+                switch (ev.eventType)
+                {
+                    case DialogueEventType.ChangeBackground:
+                        {
+                            Debug.Log("Event type: ChangeBackground");
+                            HandleChangeBackgroundEvent(ev);
+                            break;
+                        }
+                    case DialogueEventType.PlayBGM:
+                        {
+                            Debug.Log("Event type: PlayBGM");
+                            HandlePlayAudioEvents(ev, bgmPlayer, bgms);
+                            break;
+                        }
+                    case DialogueEventType.PlaySFX:
+                        {
+                            Debug.Log("Event type: PlaySFX");
+                            HandlePlayAudioEvents(ev, sfxPlayer, sfxs);
+                            break;
+                        }
+                }
+
+            }
+        }
+        private void HandleChangeBackgroundEvent(DialogueEvent ev)
+        {
+            string[] parameters = ev.parameters;
+            if (parameters.Length <= 0)
+            {
+                Debug.LogWarning("ChangeBackground event need at least one integer argument\n" +
+                                 "ChangeBackground(int index); ChangeBackground(int index, float fadeDuration);");
+            }
+            else if (parameters.Length == 1)
+            {
+                //ChangeBackground(int backgroundIndex)
+                if (parameters.Length == 1 && isInteger(parameters[0]))
+                {
+                    ChangeBackground(Int32.Parse(ev.parameters[0]));
+                }
+                else
+                {
+                    Debug.LogWarning("Invalid Parameters/ ChangeBackground(int index)");
+                }
+            }
+            else
+            {
+                if (isInteger(parameters[0]) && isFloat(parameters[1]))
+                {
+                    ChangeBackground(Int32.Parse(parameters[0]), float.Parse(parameters[1]));
+                }
+                else
+                {
+                    Debug.LogWarning("Invalid Parameter / ChangeBackground(int index, float fadeTime)");
+                }
+            }
+        }
+        private void HandlePlayAudioEvents(DialogueEvent ev, AudioSource player, AudioClipList audioClipList)
+        {
+            string functionName = "PlayBGM";
+            if (ev.eventType == DialogueEventType.PlaySFX)
+            {
+                functionName = "PlaySFX";
+            }
+            if (ev.parameters.Length <= 0)
+            {
+                Debug.LogWarning(functionName + " need at least one integer argument");
+            }
+            else
+            {
+                string[] parameter = ev.parameters;
+
+
+                if (parameter.Length == 1)
+                {
+                    //PlayAudio(int clipIndex);
+                    if (isInteger(parameter[0]))
+                    {
+                        if(ev.eventType == DialogueEventType.PlayBGM)
+                        {
+                            PlayBGM(Int32.Parse(parameter[0]));
+                        }
+                        else if(ev.eventType == DialogueEventType.PlaySFX)
+                        {
+                            PlaySFX(Int32.Parse(parameter[0]));
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Invalid argument/ " + functionName + "(int index)");
+                    }
+                }
+                else if (parameter.Length == 2)
+                {
+                    //PlayAudio(int clipIndex, float volume);
+                    if (isInteger(parameter[0]) && isFloat(parameter[1]))
+                    {
+                        if (ev.eventType == DialogueEventType.PlayBGM)
+                        {
+                            PlayBGM(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                        }
+                        else if (ev.eventType == DialogueEventType.PlaySFX)
+                        {
+                            PlaySFX(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Invalid argument/ " + functionName + "(int index, float volume)");
+                    }
+                }
+                else if (parameter.Length > 2)
+                {
+                    //PlayAudio(int clipIndex, float volume, bool isLoop);
+                    if (isInteger(parameter[0]) && isFloat(parameter[1]))
+                    {
+
+                        if (isBoolean(parameter[2]))
+                        {
+                            if (ev.eventType == DialogueEventType.PlayBGM)
+                            {
+                                PlayBGM(Int32.Parse(parameter[0]), float.Parse(parameter[1]), Boolean.Parse(parameter[2]));
+                            }
+                            else if (ev.eventType == DialogueEventType.PlaySFX)
+                            {
+                                PlaySFX(Int32.Parse(parameter[0]), float.Parse(parameter[1]), Boolean.Parse(parameter[2]));
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Invalid boolean argument");
+                            if (ev.eventType == DialogueEventType.PlayBGM)
+                            {
+                                PlayBGM(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                            }
+                            else if (ev.eventType == DialogueEventType.PlaySFX)
+                            {
+                                PlaySFX(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                            }
+                            
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Invalid argument/ " + functionName + "(int index, float volume, bool isLoop)");
+                    }
+                }
+            }
+        }
+        #endregion
+
+
+        #region Content Displaying
         private void DisplayContent(Dialogue dialogue)
         {
             if (fadeIn != null) { fadeIn = null; }
@@ -185,7 +450,6 @@ namespace TamCam.MainGame
             }
 
         }
-
         private void CompleteCurrentTextTransition()
         {
             if (!isTextTransitioning) { return; }
@@ -228,7 +492,6 @@ namespace TamCam.MainGame
                 completeBubble.gameObject.SetActive(true);
             }
         }
-
         public void DisplayText_Normal(string text, bool isConjunctive = false)
         {
             if (isConjunctive)
@@ -244,7 +507,6 @@ namespace TamCam.MainGame
                 completeBubble.gameObject.SetActive(true);
             }
         }
-
         public IEnumerator TypewriterEffect(string text, float speed, bool isAdditive)
         {
             int isSkipping = 0;
@@ -292,7 +554,6 @@ namespace TamCam.MainGame
             }
             isTextTransitioning = false;
         }
-
         public IEnumerator FadeInEffect(string text, float duration, bool isAdditive)
         {
             isTextTransitioning = true;
@@ -380,12 +641,12 @@ namespace TamCam.MainGame
             isTextTransitioning = false;
         }
         #endregion
-        
+
         #region Misc
-        private bool CheckNotNullChoiceGUIComponents(bool showErrorLog = true)
+        private bool CheckNullChoiceGUIComponents(bool showErrorLog = true)
         {
-            bool result = (questionAndChoicesPanel != null) && (questionGUI != null) && (choicesArea != null) && (choiceButtonPrefab != null);
-            if (!result && showErrorLog)
+            bool isNull = (questionAndChoicesPanel == null) || (questionGUI == null) || (choicesArea == null) || (choiceButtonPrefab == null);
+            if (isNull && showErrorLog)
             {
                 if (questionAndChoicesPanel == null)
                 {
@@ -404,8 +665,16 @@ namespace TamCam.MainGame
                     Debug.LogError("Button prefab is null");
                 }
             }
-            return result;
+            return isNull;
 
+        }
+        private bool CheckNullBackgroundGUIComponent(bool showErrorLog = true)
+        {
+            if (background == null)
+            {
+                Debug.LogError("Background Image Component is null");
+            }
+            return background == null;
         }
         public void ResetAllRoute()
         {
@@ -415,6 +684,18 @@ namespace TamCam.MainGame
                 return;
             }
             ChangeRoute(firstRoute);
+        }
+        private bool isInteger(string value)
+        {
+            return Int32.TryParse(value.Trim(), out _);
+        }
+        private bool isFloat(string value)
+        {
+            return float.TryParse(value.Trim(), out _);
+        }
+        private bool isBoolean(string value)
+        {
+            return Boolean.TryParse(value.Trim(), out _);
         }
         #endregion
     }

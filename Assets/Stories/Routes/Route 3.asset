@@ -15,21 +15,41 @@ MonoBehaviour:
   dialogues:
     array:
     - characterName: 
-      content: Route 3
+      content: I opened the door
+      isAdditive: 0
+      introTextEffect: 1
+      fadeInDuration: 0
+      events:
+        array:
+        - eventType: 2
+          parameters:
+          - 3
+          - 0.5
+    - characterName: 
+      content: <size="66">*BANG*</size>
       isAdditive: 0
       introTextEffect: 0
       fadeInDuration: 0
+      events:
+        array:
+        - eventType: 2
+          parameters:
+          - 1
+        - eventType: 1
+          parameters:
+          - 1
     - characterName: 
-      content: Route 3 - them text Fade in
-      isAdditive: 1
-      introTextEffect: 2
-      fadeInDuration: 1
-    - characterName: 
-      content: Typewriter cai moi
-      isAdditive: 1
-      introTextEffect: 2
+      content: I WAS SHOT
+      isAdditive: 0
+      introTextEffect: 0
       fadeInDuration: 0
+      events:
+        array:
+        - eventType: 2
+          parameters:
+          - 2
+          - 3
+  changeRouteQuestion: 
   choices:
     array: []
   nextRoute: {fileID: 0}
-  changeRouteQuestion: 

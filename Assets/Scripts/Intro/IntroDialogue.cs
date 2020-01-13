@@ -2,27 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class IntroDialogue
+namespace TamCam.Intro
 {
-    [TextArea(5, 5)]public string content;
+    [Serializable]
+    public class IntroDialogue
+    {
+        [TextArea(5, 5)] public string content;
 
-    [Header("Audio")]
-    public Audio bgm;
-    public bool startOverBGM;
-    public Audio SFX;
+        [Header("Audio")]
+        public Audio bgm;
+        public bool startOverBGM;
+        public Audio SFX;
 
-    [Header("Text Transitions")]
-    public bool isFadedIn;
-    public float fadedInDuration;
+        [Header("Text Transitions")]
+        public bool isFadedIn;
+        public float fadedInDuration;
 
-    public bool isFadedOut;
-    public float fadedOutDuration;
-}
+        public bool isFadedOut;
+        public float fadedOutDuration;
+    }
 
-[Serializable]
-public class Audio
-{
-    public AudioClip clip;
-    [Range(0f,1f)]public float volume = 1;
+    [Serializable]
+    public class Audio
+    {
+        public AudioClip clip;
+        [Range(0f, 1f)] public float volume = 1;
+    } 
 }

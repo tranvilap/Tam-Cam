@@ -9,6 +9,8 @@ namespace TamCam.Commons
 
     public enum OutroTextEffect { Normal, FadeOut }
 
+    public enum DialogueEventType { PlayBGM, PlaySFX, ChangeBackground, AddCharacter, RemoveCharacter, MoveCharacter }
+
     //Example for multiple choices enum
     //[System.Flags]
     //public enum OutroTextEffect { Normal, FadeOut }
