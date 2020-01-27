@@ -42,10 +42,7 @@ MonoBehaviour:
       introTextEffect: 1
       fadeInDuration: 0
       events:
-        array:
-        - eventType: 7
-          parameters:
-          - Kotori
+        array: []
     - characterName: 
       content: '[If we had school, we''d be late by now]'
       isAdditive: 0
