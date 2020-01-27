@@ -9,7 +9,22 @@ namespace TamCam.Commons
 
     public enum OutroTextEffect { Normal, FadeOut }
 
-    public enum DialogueEventType { PlayBGM, PlaySFX, ChangeBackground, AddCharacter, RemoveCharacter, MoveCharacter }
+    public enum DialogueEventType
+    {
+        PlayBGM, //PlayBGM(int index); PlayBGM(int index, float volume); PlayBGM(int index, float volume, bool isLoop);
+        PlaySFX, //PlaySFX(int index); PlaySFX(int index, float volume); PlaySFX(int index, float volume, bool isLoop);
+        ChangeVolumeBGM, //ChangeVolumeBGM(float volume)
+        ChangeVolumeSFX, //ChangeVolumeSFX(float volume)
+        StopBGM, StopSFX, //StopBGM(); StopSFX();
+        ChangeBackground, //ChangeBackground(int index); ChangeBackground(int index, float fadeDuration);
+        AddOrChangeCharacter, //AddCharacter(string name, int spriteIndex, float posX=0f, float posY=0f, float scaleX=1f, float scaleY=1f);
+        MoveCharacter, //MoveCharacter(string name, float posX, float posY);
+        ScalingCharacter, //ScalingCharacter(string name, float scaleX, float scaleY);
+        HideCharacter, //HideCharacter(string name);
+        ShowCharacter, //ShowCharacter(string name);
+        RemoveCharacter
+
+    }
 
     //Example for multiple choices enum
     //[System.Flags]

@@ -32,12 +32,14 @@ MonoBehaviour:
       fadeInDuration: 0
       events:
         array:
-        - eventType: 2
+        - eventType: 6
           parameters:
           - 1
         - eventType: 1
           parameters:
           - 1
+        - eventType: 4
+          parameters: []
     - characterName: 
       content: I WAS SHOT
       isAdditive: 0
@@ -45,7 +47,7 @@ MonoBehaviour:
       fadeInDuration: 0
       events:
         array:
-        - eventType: 2
+        - eventType: 6
           parameters:
           - 2
           - 3

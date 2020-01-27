@@ -13,19 +13,22 @@ namespace TamCam.MainGame
     public class GameController : MonoBehaviour
     {
         [Header("Reference")]
-        [SerializeField] TextMeshProUGUI contentTextGUI = null;
+        [SerializeField] Canvas mainGameCanvas = null;
         [SerializeField] Image background = null;
+        [SerializeField] TextMeshProUGUI contentText = null;
         [SerializeField] GameObject questionAndChoicesPanel = null;
-        [SerializeField] TextMeshProUGUI questionGUI = null;
+        [SerializeField] TextMeshProUGUI questionText = null;
         [SerializeField] GameObject choicesArea = null;
-        [SerializeField] Image completeBubble = null;
-        [SerializeField] Button choiceButtonPrefab = null;
+        [SerializeField] RectTransform charactersArea = null;
         [SerializeField] AudioSource bgmPlayer = null;
         [SerializeField] AudioSource sfxPlayer = null;
 
         [Header("Game")]
         [SerializeField] Route firstRoute = null;
         [SerializeField] float typeWriterSpeed = 0.02f;
+        [SerializeField] float fadeOutCharacterDuration = 0.2f;
+        [SerializeField] float fadeInCharacterDuration = 0.2f;
+
 
         [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
         [SerializeField] BackgroundList backgrounds = null;
@@ -36,16 +39,24 @@ namespace TamCam.MainGame
         [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
         [SerializeField] AudioClipList sfxs = null;
 
+        [Reorderable(add = true, draggable = true, paginate = true, pageSize = 10, remove = true, sortable = false)]
+        [SerializeField] CharacterSprite characterSprites = null;
+
+        [Header("Prefabs")]
+        [SerializeField] GameObject characterSpritePrefab = null;
+        [SerializeField] Button choiceButtonPrefab = null;
+        [SerializeField] Image completeBubble = null;
 
         bool isChoosingQuestion = false;
         bool isTextTransitioning = false;
-        bool isUIChanging = false;
+        bool isBackgroundChanging = false;
 
         Route currentRoute;
         int currentDialogueIndex = 0;
         string currentDisplayContent = "";
         Coroutine fadeIn, typeWriter;
         List<Route> playedRoute = new List<Route>();
+        Dictionary<string, GameObject> characterDictionary = new Dictionary<string, GameObject>();
 
         private static GameController instance;
         private GameController() { }
@@ -88,7 +99,7 @@ namespace TamCam.MainGame
                 questionAndChoicesPanel.SetActive(false);
 
             }
-            currentDisplayContent = contentTextGUI.text;
+            currentDisplayContent = contentText.text;
             if (currentRoute == null)
             {
                 currentRoute = firstRoute;
@@ -101,7 +112,7 @@ namespace TamCam.MainGame
         {
             if (Input.GetMouseButtonUp(0))
             {
-                if (isUIChanging) { return; }
+                if (isBackgroundChanging) { return; }
                 if (isTextTransitioning)
                 {
                     CompleteCurrentTextTransition();
@@ -143,7 +154,7 @@ namespace TamCam.MainGame
 
             isChoosingQuestion = true;
             questionAndChoicesPanel.SetActive(true);
-            questionGUI.text = question;
+            questionText.text = question;
             foreach (var choice in choices)
             {
                 Button button = Instantiate(choiceButtonPrefab, choicesArea.transform);
@@ -157,7 +168,7 @@ namespace TamCam.MainGame
         #region Common Methods
         private void SetContentText(string text)
         {
-            contentTextGUI.text = text;
+            contentText.text = text;
             currentDisplayContent = text;
         }
         private void ChangeRoute(Route route)
@@ -174,17 +185,21 @@ namespace TamCam.MainGame
                 Destroy(child.gameObject);
             }
         }
-        public Sprite GetBackground(int index)
+        private Sprite GetBackground(int index)
         {
             if (index >= backgrounds.Count) { return null; }
             return backgrounds.List[index];
         }
-        public AudioClip GetAudioClip(AudioClipList list, int index)
+        private AudioClip GetAudioClip(AudioClipList list, int index)
         {
             if (index >= list.Count) { return null; }
             return list.List[index];
         }
-
+        private Sprite GetCharacterSprite(int index)
+        {
+            if (index >= characterSprites.Count) { return null; }
+            return characterSprites.List[index];
+        }
         #endregion
 
         #region Backgrounds
@@ -212,9 +227,9 @@ namespace TamCam.MainGame
         }
         private IEnumerator BackgroundFade(float duration)
         {
-            if (duration > Mathf.Epsilon && !isUIChanging)
+            if (duration > Mathf.Epsilon && !isBackgroundChanging)
             {
-                isUIChanging = true;
+                isBackgroundChanging = true;
                 background.color = new Color32(0, 0, 0, 255);
                 float timeLapsed = 0f;
                 while (timeLapsed < duration)
@@ -225,7 +240,7 @@ namespace TamCam.MainGame
                     yield return null;
                 }
                 background.color = new Color32(255, 255, 255, 255);
-                isUIChanging = false;
+                isBackgroundChanging = false;
             }
         }
         #endregion
@@ -264,6 +279,33 @@ namespace TamCam.MainGame
 
             PlayAudio(bgmPlayer, clip, index, volume, isLoop);
         }
+        private void ChangeVolume(AudioSource player, float volume)
+        {
+            if (volume <= Mathf.Epsilon)
+            {
+                player.volume = 0;
+            }
+            else
+            {
+                player.volume = volume;
+            }
+        }
+        private void ChangeVolumeBGM(float volume)
+        {
+            ChangeVolume(bgmPlayer, volume);
+        }
+        private void ChangeVolumeSFX(float volume)
+        {
+            ChangeVolume(sfxPlayer, volume);
+        }
+        private void StopAudioPlayer(AudioSource player)
+        {
+            if (player.isPlaying)
+            {
+                player.Stop();
+            }
+        }
+
         #endregion
 
         #region Dialogue's Events
@@ -292,8 +334,211 @@ namespace TamCam.MainGame
                             HandlePlayAudioEvents(ev, sfxPlayer, sfxs);
                             break;
                         }
+                    case DialogueEventType.ChangeVolumeBGM:
+                        {
+                            Debug.Log("Event type: Change BGM Volume");
+                            HandleChangeVolumeBGMEvent(ev);
+                            break;
+                        }
+                    case DialogueEventType.ChangeVolumeSFX:
+                        {
+                            Debug.Log("Event type: Change SFX Volume");
+                            HandleChangeSFXVolume(ev);
+                            break;
+                        }
+                    case DialogueEventType.StopBGM:
+                        {
+                            Debug.Log("Event type: StopBGM");
+                            StopAudioPlayer(bgmPlayer);
+                            break;
+                        }
+                    case DialogueEventType.StopSFX:
+                        {
+                            Debug.Log("Event type: StopBGM");
+                            StopAudioPlayer(sfxPlayer);
+                            break;
+                        }
+                    case DialogueEventType.AddOrChangeCharacter:
+                        {
+                            Debug.Log("Event type: AddOrChangeCharacter");
+                            HandleAddOrChangeCharacterEvent(ev);
+                            break;
+                        }
+                    case DialogueEventType.MoveCharacter:
+                        {
+                            Debug.Log("Event type: MoveCharacter");
+                            HandleMoveCharacterEvent(ev);
+                            break;
+                        }
                 }
+            }
+        }
 
+        private void HandleMoveCharacterEvent(DialogueEvent ev)
+        {
+            var parameters = ev.parameters;
+            if (parameters.Length < 2 || String.IsNullOrWhiteSpace(parameters[0]))
+            {
+                Debug.LogWarning("HandleMoveCharacterEvent needs at least two arguments HandleMoveCharacterEvent(string name, float posX)");
+                return;
+            }
+            GameObject character;
+            if (!characterDictionary.TryGetValue(parameters[0], out character))
+            {
+                Debug.LogWarning("This character name doesn't exist");
+                return;
+            }
+
+            var characterReactTransform = character.GetComponent<RectTransform>();
+            float posX = characterReactTransform.localPosition.x;
+            float posY = characterReactTransform.localPosition.y;
+            if (!isFloat(parameters[1]))
+            {
+                Debug.LogWarning("Invalid second argument - float posX/ HandleMoveCharacterEvent(string name, float posX)");
+            }
+            else { posX = float.Parse(parameters[1]); }
+            if(parameters.Length >= 3)
+            {
+                if (!isFloat(parameters[2]))
+                {
+                    Debug.LogWarning("Invalid second argument - float posX/ HandleMoveCharacterEvent(string name, float posX, float posY)");
+                }
+                else { posY = float.Parse(parameters[2]); }
+            }
+            Image imageComponent = character.GetComponent<Image>();
+            ChangeCharacter(imageComponent, imageComponent.sprite, posX, posY, characterReactTransform.localScale.x, characterReactTransform.localScale.y);
+        }
+
+        private void HandleAddOrChangeCharacterEvent(DialogueEvent ev)
+        {
+            var parameters = ev.parameters;
+            if (parameters.Length == 0 || String.IsNullOrWhiteSpace(parameters[0]))
+            {
+                Debug.LogWarning("AddCharacter needs at least a string argument AddCharacter(string name)");
+                return;
+            }
+            GameObject character = null;
+            if (parameters.Length >= 1)
+            {
+                //AddCharacter(string name)
+                characterDictionary.TryGetValue(parameters[0], out character);
+            }
+
+            RectTransform characterRectTransform;
+            float posX = 0f, posY = 0f, scaleX = 1f, scaleY = 1f;
+
+            if (character == null)
+            {
+                character = Instantiate(characterSpritePrefab, charactersArea);
+                character.name = parameters[0];
+                characterDictionary.Add(parameters[0], character);
+                Debug.Log("Added Character: " + parameters[0]);
+                //Set Anchor to stretch all
+                characterRectTransform = character.GetComponent<RectTransform>();
+                characterRectTransform.pivot = new Vector2(0.5f, 0.5f);
+                characterRectTransform.anchorMin = new Vector2(0, 0);
+                characterRectTransform.anchorMax = new Vector2(1, 1);
+            }
+            else
+            {
+                characterRectTransform = character.GetComponent<RectTransform>();
+                posX = characterRectTransform.localPosition.x;
+                posY = characterRectTransform.localPosition.y;
+                scaleX = characterRectTransform.localScale.x;
+                scaleY = characterRectTransform.localScale.y;
+            }
+
+            var imageComponent = character.GetComponent<Image>();
+            if (imageComponent == null)
+            {
+                imageComponent = character.AddComponent<Image>();
+            }
+
+            if (parameters.Length >= 2)
+            {
+                //Has sprite index
+                if (!isInteger(parameters[1]))
+                {
+                    Debug.LogWarning("Invalid second argument - integer spriteIndex/ AddCharacter(string name, int spriteIndex)");
+                }
+                else
+                {
+                    //Read arguments
+                    if (parameters.Length >= 3)
+                    {
+                        if (!isFloat(parameters[2]))
+                        {
+                            Debug.LogWarning("Invalid third argument - float positionX / " +
+                                "AddCharacter(string name, int spriteIndex, float positionX");
+                        }
+                        else { posX = float.Parse(parameters[2]); }
+                    }
+                    if (parameters.Length >= 4)
+                    {
+                        if (!isFloat(parameters[3]))
+                        {
+                            Debug.LogWarning("Invalid 4th argument - float positionY / " +
+                                "AddCharacter(string name, int spriteIndex, float positionX, float positionY");
+                        }
+                        else { posY = float.Parse(parameters[3]); }
+                    }
+                    if (parameters.Length >= 5)
+                    {
+                        if (!isFloat(parameters[4]))
+                        {
+                            Debug.LogWarning("Invalid 5th argument - float scaleX / " +
+                                "AddCharacter(string name, int spriteIndex, float positionX, float positionY, scaleX");
+                        }
+                        else { scaleX = float.Parse(parameters[4]); }
+                    }
+                    if (parameters.Length >= 6)
+                    {
+                        if (!isFloat(parameters[5]))
+                        {
+                            Debug.LogWarning("Invalid 6th argument - float scaleY / " +
+                                "AddCharacter(string name, int spriteIndex, float positionX, float positionY, scaleX, scaleY");
+                        }
+                        else { scaleY = float.Parse(parameters[5]); }
+                    }
+                    ChangeCharacter(imageComponent, GetCharacterSprite(Int32.Parse(parameters[1])), posX, posY, scaleX, scaleY);
+                }
+            }
+            else if(parameters.Length == 1)
+            {
+                //if(imageComponent.sprite == null)
+                //{
+                //    character.SetActive(false);
+                //}
+            }
+        }
+        private void HandleChangeSFXVolume(DialogueEvent ev)
+        {
+            if (ev.parameters.Length <= 0)
+            {
+                Debug.LogWarning("ChangeVolumeSFX need at least one float argument");
+            }
+            else
+            {
+                if (isFloat(ev.parameters[0]))
+                {
+                    ChangeVolumeSFX(float.Parse(ev.parameters[0]));
+                }
+                else { Debug.LogWarning("Invalid argument/ ChangeVolumeSFX(float volume) - range: 0-1"); }
+            }
+        }
+        private void HandleChangeVolumeBGMEvent(DialogueEvent ev)
+        {
+            if (ev.parameters.Length <= 0)
+            {
+                Debug.LogWarning("ChangeVolumeBGM need at least one float argument");
+            }
+            else
+            {
+                if (isFloat(ev.parameters[0]))
+                {
+                    ChangeVolumeBGM(float.Parse(ev.parameters[0]));
+                }
+                else { Debug.LogWarning("Invalid argument/ ChangeVolumeBGM(float volume) - range: 0-1"); }
             }
         }
         private void HandleChangeBackgroundEvent(DialogueEvent ev)
@@ -341,21 +586,21 @@ namespace TamCam.MainGame
             }
             else
             {
-                string[] parameter = ev.parameters;
+                string[] parameters = ev.parameters;
 
 
-                if (parameter.Length == 1)
+                if (parameters.Length == 1)
                 {
                     //PlayAudio(int clipIndex);
-                    if (isInteger(parameter[0]))
+                    if (isInteger(parameters[0]))
                     {
-                        if(ev.eventType == DialogueEventType.PlayBGM)
+                        if (ev.eventType == DialogueEventType.PlayBGM)
                         {
-                            PlayBGM(Int32.Parse(parameter[0]));
+                            PlayBGM(Int32.Parse(parameters[0]));
                         }
-                        else if(ev.eventType == DialogueEventType.PlaySFX)
+                        else if (ev.eventType == DialogueEventType.PlaySFX)
                         {
-                            PlaySFX(Int32.Parse(parameter[0]));
+                            PlaySFX(Int32.Parse(parameters[0]));
                         }
                     }
                     else
@@ -363,18 +608,18 @@ namespace TamCam.MainGame
                         Debug.LogWarning("Invalid argument/ " + functionName + "(int index)");
                     }
                 }
-                else if (parameter.Length == 2)
+                else if (parameters.Length == 2)
                 {
                     //PlayAudio(int clipIndex, float volume);
-                    if (isInteger(parameter[0]) && isFloat(parameter[1]))
+                    if (isInteger(parameters[0]) && isFloat(parameters[1]))
                     {
                         if (ev.eventType == DialogueEventType.PlayBGM)
                         {
-                            PlayBGM(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                            PlayBGM(Int32.Parse(parameters[0]), float.Parse(parameters[1]));
                         }
                         else if (ev.eventType == DialogueEventType.PlaySFX)
                         {
-                            PlaySFX(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                            PlaySFX(Int32.Parse(parameters[0]), float.Parse(parameters[1]));
                         }
                     }
                     else
@@ -382,21 +627,21 @@ namespace TamCam.MainGame
                         Debug.LogWarning("Invalid argument/ " + functionName + "(int index, float volume)");
                     }
                 }
-                else if (parameter.Length > 2)
+                else if (parameters.Length > 2)
                 {
                     //PlayAudio(int clipIndex, float volume, bool isLoop);
-                    if (isInteger(parameter[0]) && isFloat(parameter[1]))
+                    if (isInteger(parameters[0]) && isFloat(parameters[1]))
                     {
 
-                        if (isBoolean(parameter[2]))
+                        if (isBoolean(parameters[2]))
                         {
                             if (ev.eventType == DialogueEventType.PlayBGM)
                             {
-                                PlayBGM(Int32.Parse(parameter[0]), float.Parse(parameter[1]), Boolean.Parse(parameter[2]));
+                                PlayBGM(Int32.Parse(parameters[0]), float.Parse(parameters[1]), Boolean.Parse(parameters[2]));
                             }
                             else if (ev.eventType == DialogueEventType.PlaySFX)
                             {
-                                PlaySFX(Int32.Parse(parameter[0]), float.Parse(parameter[1]), Boolean.Parse(parameter[2]));
+                                PlaySFX(Int32.Parse(parameters[0]), float.Parse(parameters[1]), Boolean.Parse(parameters[2]));
                             }
                         }
                         else
@@ -404,13 +649,13 @@ namespace TamCam.MainGame
                             Debug.LogWarning("Invalid boolean argument");
                             if (ev.eventType == DialogueEventType.PlayBGM)
                             {
-                                PlayBGM(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                                PlayBGM(Int32.Parse(parameters[0]), float.Parse(parameters[1]));
                             }
                             else if (ev.eventType == DialogueEventType.PlaySFX)
                             {
-                                PlaySFX(Int32.Parse(parameter[0]), float.Parse(parameter[1]));
+                                PlaySFX(Int32.Parse(parameters[0]), float.Parse(parameters[1]));
                             }
-                            
+
                         }
                     }
                     else
@@ -422,6 +667,79 @@ namespace TamCam.MainGame
         }
         #endregion
 
+
+        #region Character
+        private void ChangeCharacter(Image imageComponent, Sprite sprite, float posX, float posY, float scaleX, float scaleY)
+        {
+            StartCoroutine(ChangeCharacterEffect(imageComponent, sprite, posX, posY, scaleX, scaleY));
+        }
+        IEnumerator ChangeCharacterEffect(Image imageComponent, Sprite sprite, float posX, float posY, float scaleX, float scaleY)
+        {
+            if (fadeOutCharacterDuration >= Mathf.Epsilon && fadeInCharacterDuration >= Mathf.Epsilon)
+            {
+                float fadeOutCounter = 0f, fadeInCounter = 0f;
+                Color originalColor = imageComponent.color;
+                //Fade out
+                if (imageComponent.sprite != null)
+                {
+                    while (fadeOutCounter < fadeOutCharacterDuration)
+                    {
+                        imageComponent.color = new Color(originalColor.r, originalColor.g, originalColor.b,
+                                                        1 - (fadeOutCounter / fadeOutCharacterDuration));
+                        fadeOutCounter += Time.deltaTime;
+                        yield return null;
+                    }
+                }
+                else
+                {
+                    imageComponent.gameObject.SetActive(false);
+                }
+                imageComponent.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+
+
+                //Fade in
+                //Align sprite size and position
+                imageComponent.sprite = sprite;
+                float spriteWidth = 0f, spriteHeight = 0f;
+                if (sprite != null)
+                {
+                    spriteWidth = sprite.rect.width;
+                    spriteHeight = sprite.rect.height;
+                }
+                var rectTransform = imageComponent.GetComponent<RectTransform>();
+                var referenceResolution = mainGameCanvas.GetComponent<CanvasScaler>().referenceResolution;
+                float left = ((referenceResolution.x - spriteWidth) / 2) + posX;
+                float right = referenceResolution.x - (left + spriteWidth);
+                float top = ((referenceResolution.y - spriteHeight) / 2) + posY;
+                float bottom = referenceResolution.y - (top + spriteHeight);
+                rectTransform.offsetMin = new Vector2(left, top);
+                rectTransform.offsetMax = new Vector2(-right, -bottom);
+
+                //Change Scale
+                rectTransform.localScale = new Vector2(scaleX, scaleY);
+
+                if (sprite != null)
+                {
+                    imageComponent.gameObject.SetActive(true);
+                    while (fadeInCounter < fadeInCharacterDuration)
+                    {
+                        imageComponent.color = new Color(originalColor.r, originalColor.g, originalColor.b,
+                                                        (fadeInCounter / fadeInCharacterDuration));
+                        fadeInCounter += Time.deltaTime;
+                        yield return null;
+                    }
+                    imageComponent.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
+                }
+                else
+                {
+                    //Disable Character coz no sprite to display
+                    imageComponent.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
+                    Debug.Log("SEt false");
+                    imageComponent.gameObject.SetActive(false);
+                }
+            }
+        }
+        #endregion
 
         #region Content Displaying
         private void DisplayContent(Dialogue dialogue)
@@ -461,10 +779,10 @@ namespace TamCam.MainGame
                 Debug.Log("Completed Fade In transition");
                 StopCoroutine(fadeIn);
                 fadeIn = null;
-                string temp = contentTextGUI.text;
-                contentTextGUI.text = "";
+                string temp = contentText.text;
+                contentText.text = "";
                 SetContentText(temp);
-                contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 1f);
+                contentText.color = new Color(contentText.color.r, contentText.color.g, contentText.color.b, 1f);
             }
             if (typeWriter != null)
             {
@@ -496,7 +814,7 @@ namespace TamCam.MainGame
         {
             if (isConjunctive)
             {
-                SetContentText(contentTextGUI.text + text);
+                SetContentText(contentText.text + text);
             }
             else
             {
@@ -513,12 +831,12 @@ namespace TamCam.MainGame
             isTextTransitioning = true;
             if (!isAdditive)
             {
-                contentTextGUI.text = "";
+                contentText.text = "";
             }
-            string temp = contentTextGUI.text;
+            string temp = contentText.text;
             if (speed < 0)
             {
-                contentTextGUI.text = text;
+                contentText.text = text;
             }
             else
             {
@@ -531,7 +849,7 @@ namespace TamCam.MainGame
                     }
                     if (isSkipping == 0)
                     {
-                        contentTextGUI.text += character;
+                        contentText.text += character;
                         yield return new WaitForSeconds(speed);
                     }
                     if (character.Equals('>'))
@@ -542,12 +860,12 @@ namespace TamCam.MainGame
                         }
                         if (isSkipping == 0)
                         {
-                            contentTextGUI.text = temp;
+                            contentText.text = temp;
                         }
                     }
                 }
             }
-            SetContentText(contentTextGUI.text);
+            SetContentText(contentText.text);
             if (completeBubble != null)
             {
                 completeBubble.gameObject.SetActive(true);
@@ -561,13 +879,13 @@ namespace TamCam.MainGame
             {
                 if (isAdditive)
                 {
-                    contentTextGUI.ForceMeshUpdate();
-                    var textInfo = contentTextGUI.textInfo;
+                    contentText.ForceMeshUpdate();
+                    var textInfo = contentText.textInfo;
 
                     int lastIndex = textInfo.characterCount;
-                    contentTextGUI.text += text;
+                    contentText.text += text;
 
-                    contentTextGUI.ForceMeshUpdate();
+                    contentText.ForceMeshUpdate();
                     int textLength = textInfo.characterCount;
 
                     Color32[] newVertexColors;
@@ -598,7 +916,7 @@ namespace TamCam.MainGame
                                 newVertexColors[vertexIndex + 3].a = alpha;
 
                                 // New function which pushes (all) updated vertex data to the appropriate meshes when using either the Mesh Renderer or CanvasRenderer.
-                                contentTextGUI.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+                                contentText.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
 
                                 // This last process could be done to only update the vertex data that has changed as opposed to all of the vertex data but it would require extra steps and knowing what type of renderer is used.
                                 // These extra steps would be a performance optimization but it is unlikely that such optimization will be necessary.
@@ -610,13 +928,13 @@ namespace TamCam.MainGame
                 }
                 else
                 {
-                    contentTextGUI.text = text;
-                    contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 0f);
+                    contentText.text = text;
+                    contentText.color = new Color(contentText.color.r, contentText.color.g, contentText.color.b, 0f);
                     float timeLapsed = 0f;
                     while (timeLapsed < duration)
                     {
                         timeLapsed += Time.deltaTime;
-                        contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, timeLapsed / duration);
+                        contentText.color = new Color(contentText.color.r, contentText.color.g, contentText.color.b, timeLapsed / duration);
                         yield return null;
                     }
                 }
@@ -625,19 +943,19 @@ namespace TamCam.MainGame
             {
                 if (isAdditive)
                 {
-                    contentTextGUI.text += text;
+                    contentText.text += text;
                 }
                 else
                 {
-                    contentTextGUI.text = text;
+                    contentText.text = text;
                 }
             }
-            SetContentText(contentTextGUI.text);
+            SetContentText(contentText.text);
             if (completeBubble != null)
             {
                 completeBubble.gameObject.SetActive(true);
             }
-            contentTextGUI.color = new Color(contentTextGUI.color.r, contentTextGUI.color.g, contentTextGUI.color.b, 1f);
+            contentText.color = new Color(contentText.color.r, contentText.color.g, contentText.color.b, 1f);
             isTextTransitioning = false;
         }
         #endregion
@@ -645,14 +963,14 @@ namespace TamCam.MainGame
         #region Misc
         private bool CheckNullChoiceGUIComponents(bool showErrorLog = true)
         {
-            bool isNull = (questionAndChoicesPanel == null) || (questionGUI == null) || (choicesArea == null) || (choiceButtonPrefab == null);
+            bool isNull = (questionAndChoicesPanel == null) || (questionText == null) || (choicesArea == null) || (choiceButtonPrefab == null);
             if (isNull && showErrorLog)
             {
                 if (questionAndChoicesPanel == null)
                 {
                     Debug.LogError("Couldn't access to QuestionAndChoices Panel ");
                 }
-                if (questionGUI == null)
+                if (questionText == null)
                 {
                     Debug.LogError("Couldn't access to Question Text");
                 }
@@ -699,4 +1017,10 @@ namespace TamCam.MainGame
         }
         #endregion
     }
+    [Serializable]
+    public class BackgroundList : ReorderableArray<Sprite> { }
+    [Serializable]
+    public class AudioClipList : ReorderableArray<AudioClip> { }
+    [Serializable]
+    public class CharacterSprite : ReorderableArray<Sprite> { }
 }

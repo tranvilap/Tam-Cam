@@ -38,8 +38,4 @@ namespace TamCam.MainGame
     public class DialogueList : ReorderableArray<Dialogue> { }
     [Serializable]
     public class QuestionList : ReorderableArray<Choice> { }
-    [Serializable]
-    public class BackgroundList : ReorderableArray<Sprite> { }
-    [Serializable]
-    public class AudioClipList : ReorderableArray<AudioClip> { }
 }
